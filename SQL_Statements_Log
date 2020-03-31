@@ -1,0 +1,34 @@
+
+-- What SQL Queries we need?
+
+/*
+LOGIN:
+1. Create users with given inputs. ( insert into users)
+2. Get users with authentication inputs ( select for matching user and password)
+3. Check if user is an admin. (check if user is admin)
+4. Show the 10 most recent posts.
+*/
+
+Insert into Users ( UserName, ScreenName, Password )
+Values ( UN, SN, PW );
+
+------------------------------------------------------------
+Select UserName, Password from Users 
+	where UserName = VarUN
+	and Password = CharPW;
+	
+-------------------------------------------------------------	
+Select UserName from Admins 
+where UserName= VarUN;
+
+--------------------------------------------------------------
+SELECT Message, TimeS, Posted_By
+FROM
+	(
+		 SELECT *
+		 FROM Post
+		 ORDER BY TimeS DESC
+		 LIMIT 10 
+	) Post
+ORDER BY TimeS;
+-----------------------------------------------------------------	
