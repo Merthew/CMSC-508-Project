@@ -4,9 +4,9 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 $servername = "localhost";
-$username = "myusername";
-$password = "508passwd!";
-$database = "myusername";
+$username = "project_3";
+$password = "V00851455";
+$database = "pattersontj2";
 
 try {
     $conn = new PDO("mysql:host=$servername;dbname=$database", $username, $password);
