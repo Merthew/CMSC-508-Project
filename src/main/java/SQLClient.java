@@ -65,11 +65,11 @@ public class SQLClient {
 		System.out.print("\n/=======================================\\\n" + "Username: ");
 		Methods.getString();
 		String userName = Methods.getString();
-		
+
 		System.out.print("Password: ");
 		String password = Methods.getString();
-		
-		System.out.println("\n\nUsername: " + userName + "\nPassword: " + password);
+
+		System.out.println("\nLogging in: " + userName + "\n");
 	}
 
 	private static void openConnection() {
