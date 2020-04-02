@@ -1,6 +1,9 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Scanner;
 
 public class SQLClient {
 
@@ -58,6 +61,52 @@ public class SQLClient {
 	}
 
 	private static void register() {
+		boolean flag = true;
+		System.out.print("\n/=======================================\\\n" + "Username: ");
+
+		Methods.getSterilizedString();
+		String userName = Methods.getSterilizedString();
+
+		try {
+			String query = "SELECT UserName FROM Users WHERE UserName = \"" + userName + "\"";
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			if (rs.next()) {
+				System.out.println("The username: " + userName +" is taken, please try again.");
+				flag = false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		if(flag) {
+			
+			System.out.print("Password: ");
+			String password = Methods.getPassword();
+			System.out.println("Your Password: " + password);
+			password = Methods.getMd5(password);
+			
+			System.out.print("Screen Name: ");
+			String screenName = Methods.getSterilizedString();
+			
+			
+			try {
+				String query = "Insert into Users ( UserName, ScreenName, Password ) Values ( ?, ?, ? )";
+
+				PreparedStatement pst = connection.prepareStatement(query);
+				
+				pst.setString(1, userName);
+				pst.setString(2, screenName);
+				pst.setString(3, password);
+
+				pst.executeUpdate(); // executeUpdate when the query modifies the DB
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		else {
+			register();
+		}
 		
 	}
 
