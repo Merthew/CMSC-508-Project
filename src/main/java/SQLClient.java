@@ -3,11 +3,11 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Scanner;
 
 public class SQLClient {
 
 	private static Connection connection;
+	private static String sessionID;
 
 	public static void main(String[] args) {
 
@@ -16,7 +16,25 @@ public class SQLClient {
 		printWelcomeMenu();
 		inputHandler(1);
 
+		printFeed();
+		inputHandler(2);
+
 		closeConnection();
+	}
+
+	private static void printFeed() {
+		System.out.println("Welcome " + sessionID);
+
+		try {
+			String query = "SELECT Message, TimeS, Posted_By FROM( SELECT * FROM Post ORDER BY TimeS DESC LIMIT 10 ) Post ORDER BY TimeS DESC";
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			while(rs.next()) {
+				System.out.println("\n\n" + rs.getString("Posted_By") + "\t\t\t" +rs.getString("TimeS") +"\n" + rs.getString("Message"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void printWelcomeMenu() {
@@ -64,7 +82,6 @@ public class SQLClient {
 		boolean flag = true;
 		System.out.print("\n/=======================================\\\n" + "Username: ");
 
-		Methods.getSterilizedString();
 		String userName = Methods.getSterilizedString();
 
 		try {
@@ -72,29 +89,29 @@ public class SQLClient {
 			PreparedStatement pst = connection.prepareStatement(query);
 			ResultSet rs = pst.executeQuery();
 			if (rs.next()) {
-				System.out.println("The username: " + userName +" is taken, please try again.");
+				System.out.println("The username: " + userName + " is taken, please try again.");
+
 				flag = false;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		if(flag) {
-			
+
+		if (flag) {
+
 			System.out.print("Password: ");
 			String password = Methods.getPassword();
 			System.out.println("Your Password: " + password);
 			password = Methods.getMd5(password);
-			
+
 			System.out.print("Screen Name: ");
 			String screenName = Methods.getSterilizedString();
-			
-			
+
 			try {
 				String query = "Insert into Users ( UserName, ScreenName, Password ) Values ( ?, ?, ? )";
 
 				PreparedStatement pst = connection.prepareStatement(query);
-				
+
 				pst.setString(1, userName);
 				pst.setString(2, screenName);
 				pst.setString(3, password);
@@ -103,22 +120,41 @@ public class SQLClient {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-		}
-		else {
+		} else {
 			register();
 		}
-		
+
 	}
 
 	private static void login() {
+		boolean flag = false;
 		System.out.print("\n/=======================================\\\n" + "Username: ");
-		Methods.getSterilizedString();
+
 		String userName = Methods.getSterilizedString();
 
 		System.out.print("Password: ");
 		String password = Methods.getPassword();
 		password = Methods.getMd5(password);
 		System.out.println("\nLogging in: " + userName + "\n");
+
+		try {
+			String query = "SELECT UserName FROM Users WHERE UserName = \"" + userName + "\" AND Password = \""
+					+ password + "\"";
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			if (rs.next()) {
+				flag = true;
+				sessionID = userName;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		if (!flag) {
+			System.out.println("Login Failed.");
+			login();
+		}
 	}
 
 	private static void openConnection() {

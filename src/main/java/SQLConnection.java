@@ -14,22 +14,21 @@ public class SQLConnection {
 
 		openConnection();
 
-		//selectEmployees();
-		//new comment
-
-		//selectEmployeeByID("100");
-
-		//selectEmployeeByID("1 OR 1");
-
-		//selectEmployeeByIDPreparedStatement("100");
-
-		//selectEmployeeByIDPreparedStatementString("1 OR 1");
-
-		//addJob();
+		selectEmployees();
 		
-		//addEmployeeReturnAutoID();
+		selectEmployeeByID("100");
+
+		selectEmployeeByID("1 OR 1");
+
+		selectEmployeeByIDPreparedStatement("100");
+
+		selectEmployeeByIDPreparedStatementString("1 OR 1");
+
+		addJob();
 		
-		//deleteEmployeeByID(207);
+		addEmployeeReturnAutoID();
+		
+		deleteEmployeeByID(207);
  
 		closeConnection();
 	}
