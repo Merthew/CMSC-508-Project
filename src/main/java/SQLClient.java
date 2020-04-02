@@ -58,17 +58,17 @@ public class SQLClient {
 	}
 
 	private static void register() {
-
+		
 	}
 
 	private static void login() {
 		System.out.print("\n/=======================================\\\n" + "Username: ");
-		Methods.getString();
-		String userName = Methods.getString();
+		Methods.getSterilizedString();
+		String userName = Methods.getSterilizedString();
 
 		System.out.print("Password: ");
-		String password = Methods.getString();
-
+		String password = Methods.getPassword();
+		password = Methods.getMd5(password);
 		System.out.println("\nLogging in: " + userName + "\n");
 	}
 
