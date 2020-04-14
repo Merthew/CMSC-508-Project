@@ -27,14 +27,34 @@ public class SQLClient {
 
 		try {
 			String query = "SELECT Message, TimeS, Posted_By FROM( SELECT * FROM Post ORDER BY TimeS DESC LIMIT 10 ) Post ORDER BY TimeS DESC";
+			// String query = "SELECT Message, Post.TimeS, ScreenName FROM ( SELECT * FROM
+			// Post ORDER BY Post.TimeS DESC LIMIT 10 ) Post, Users where Posted_By =
+			// UserName ORDER BY Post.TimeS DESC ";
+
 			PreparedStatement pst = connection.prepareStatement(query);
 			ResultSet rs = pst.executeQuery();
-			while(rs.next()) {
-				System.out.println("\n\n" + rs.getString("Posted_By") + "\t\t\t" +rs.getString("TimeS") +"\n" + rs.getString("Message"));
+			while (rs.next()) {
+				// System.out.println("\n\n" + rs.getString("Posted_By") + "\t\t\t" +
+				// rs.getString("TimeS") +"\n" + rs.getString("Message"));
+
+				try {
+					String query1 = "SELECT ScreenName FROM Users WHERE UserName = \"" + rs.getString("Posted_By")
+							+ "\"";
+					PreparedStatement pst1 = connection.prepareStatement(query1);
+					ResultSet rs1 = pst1.executeQuery();
+					rs1.next();
+
+					System.out.printf("\n\n%-20s %s\n%s", rs1.getString("ScreenName"), rs.getString("TimeS"),
+							rs.getString("Message"));
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		System.out.println("\n\n1.  Select Post\n2.  Make Post\n3.  Profile\n>> ");
+		
 	}
 
 	private static void printWelcomeMenu() {
@@ -69,8 +89,26 @@ public class SQLClient {
 			}
 			break;
 		case 2:
-			// something else
-			break;
+			temp = 1;
+			while (temp != 0) {
+				switch (Methods.getInt()) {
+				case 1:
+					
+					temp = 0;
+					break;
+				case 2:
+					
+					temp = 0;
+					break;
+				case 3:
+					
+					temp = 0;
+					break;
+				default:
+					System.out.print(">> ");
+					break;
+				}
+			}
 		}
 	}
 
