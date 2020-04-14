@@ -3,11 +3,16 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SQLClient {
 
 	private static Connection connection;
 	private static String sessionID;
+	private static List<Integer> localResPostId;
+	private static List<Integer> localResCommId;
+	private static int currPost;
 
 	public static void main(String[] args) {
 
@@ -15,7 +20,7 @@ public class SQLClient {
 
 		printWelcomeMenu();
 		inputHandler(1);
-
+		
 		printFeed();
 		inputHandler(2);
 
@@ -23,19 +28,21 @@ public class SQLClient {
 	}
 
 	private static void printFeed() {
+		currPost = -1;
+		if (localResPostId == null) {
+			localResPostId = new ArrayList<Integer>();
+		} else {
+			localResPostId.clear();
+		}
+
 		System.out.println("Welcome " + sessionID);
 
 		try {
-			String query = "SELECT Message, TimeS, Posted_By FROM( SELECT * FROM Post ORDER BY TimeS DESC LIMIT 10 ) Post ORDER BY TimeS DESC";
-			// String query = "SELECT Message, Post.TimeS, ScreenName FROM ( SELECT * FROM
-			// Post ORDER BY Post.TimeS DESC LIMIT 10 ) Post, Users where Posted_By =
-			// UserName ORDER BY Post.TimeS DESC ";
+			String query = "SELECT Message, TimeS, Posted_By, Post_ID FROM( SELECT * FROM Post ORDER BY TimeS DESC LIMIT 10 ) Post ORDER BY TimeS DESC";
 
 			PreparedStatement pst = connection.prepareStatement(query);
 			ResultSet rs = pst.executeQuery();
 			while (rs.next()) {
-				// System.out.println("\n\n" + rs.getString("Posted_By") + "\t\t\t" +
-				// rs.getString("TimeS") +"\n" + rs.getString("Message"));
 
 				try {
 					String query1 = "SELECT ScreenName FROM Users WHERE UserName = \"" + rs.getString("Posted_By")
@@ -46,6 +53,8 @@ public class SQLClient {
 
 					System.out.printf("\n\n%-20s %s\n%s", rs1.getString("ScreenName"), rs.getString("TimeS"),
 							rs.getString("Message"));
+
+					localResPostId.add(rs.getInt("Post_ID"));
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -53,8 +62,8 @@ public class SQLClient {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		System.out.println("\n\n1.  Select Post\n2.  Make Post\n3.  Profile\n>> ");
-		
+		System.out.print("\n\n1.  Select Post\n2.  Make Post\n3.  Profile\n>> ");
+
 	}
 
 	private static void printWelcomeMenu() {
@@ -93,15 +102,17 @@ public class SQLClient {
 			while (temp != 0) {
 				switch (Methods.getInt()) {
 				case 1:
-					
+					System.out.print("Input post number: ");
+					int index = localResPostId.get(Methods.getInt() - 1);
+					displayPost(index);
 					temp = 0;
 					break;
 				case 2:
-					
+
 					temp = 0;
 					break;
 				case 3:
-					
+
 					temp = 0;
 					break;
 				default:
@@ -109,7 +120,125 @@ public class SQLClient {
 					break;
 				}
 			}
+			break;
+		case 3:
+			temp = 1;
+			while (temp != 0) {
+				switch (Methods.getInt()) {
+				case 1:
+					System.out.print("Input comment number: ");
+					int index = localResCommId.get(Methods.getInt() - 1);
+					displayComment(index);
+					temp = 0;
+					break;
+				case 2:
+
+					temp = 0;
+					break;
+				case 3:
+
+					temp = 0;
+					break;
+				default:
+					System.out.print(">> ");
+					break;
+				}
+			}
+			break;
+			
+		
+			
+		default:
+			break;
 		}
+		
+	}
+
+	private static void displayComment(int index) {
+		String query = "SELECT * FROM Comments WHERE Comment_ID = \"" + index + "\"";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			rs.next();
+			try {
+				String query1 = "SELECT ScreenName FROM Users WHERE UserName = \"" + rs.getString("Commented_By")
+						+ "\"";
+				PreparedStatement pst1 = connection.prepareStatement(query1);
+				ResultSet rs1 = pst1.executeQuery();
+				rs1.next();
+
+				System.out.printf("\n\n%-20s %s\n%s", rs1.getString("ScreenName"), rs.getString("Comments.TimeS"),
+						rs.getString("Content"));
+				
+				localResCommId.add(rs.getInt("Comment_ID"));
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void displayPost(int index) {
+		currPost = index;
+		if (localResCommId == null) {
+			localResCommId = new ArrayList<Integer>();
+		} else {
+			localResCommId.clear();
+		}
+		String query = "SELECT * FROM Post WHERE Post_ID = \"" + index + "\"";
+
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			rs.next();
+			try {
+				String query1 = "SELECT ScreenName FROM Users WHERE UserName = \"" + rs.getString("Posted_By") + "\"";
+				PreparedStatement pst1 = connection.prepareStatement(query1);
+				ResultSet rs1 = pst1.executeQuery();
+				rs1.next();
+
+				System.out.printf("\n\n%-20s %s\n%s", rs1.getString("ScreenName"), rs.getString("TimeS"),
+						rs.getString("Message"));
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		System.out.println("\n---------------------------------------");
+		String commQuery = "SELECT Commented_By, content, Comments.TimeS, Comment_ID FROM Comments WHERE Comments.Post_ID = \""
+				+ index + "\" ORDER BY Comments.TimeS DESC LIMIT 10 ";
+		try {
+			PreparedStatement pst = connection.prepareStatement(commQuery);
+			ResultSet rs = pst.executeQuery();
+			while (rs.next()) {
+				try {
+					String query1 = "SELECT ScreenName FROM Users WHERE UserName = \"" + rs.getString("Commented_By")
+							+ "\"";
+					PreparedStatement pst1 = connection.prepareStatement(query1);
+					ResultSet rs1 = pst1.executeQuery();
+					rs1.next();
+
+					System.out.printf("\n\n%-20s %s\n%s", rs1.getString("ScreenName"), rs.getString("Comments.TimeS"),
+							rs.getString("Content"));
+					
+					localResCommId.add(rs.getInt("Comment_ID"));
+
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		System.out.print("\n\n1.  Select Comment\n2.  Make Comment\n3.  Like Post\n>> ");
+		inputHandler(3);
 	}
 
 	private static void quit() {
