@@ -69,3 +69,28 @@ FROM
 
 where UserName=Posted_By
 ORDER BY Post.TimeS DESC;
+-------------------------------------------------------------
+
+--14-Apr-2020
+
+--Worked on selecting a post when a user has already logged in.
+--Working on a user being able to make a post or comment on another post.
+--Allow User to view profile
+	--1.friends
+	--2. profile info...
+	
+--need to be able to select comments once we display a post.
+
+INSERT INTO `Comments`(`Commented_By`, `Post_ID`, `Content`, `TimeS`) 
+VALUES ('ChrisTest',5,'This is a good post.','2020-04-14 15:54:00')
+
+select Commented_By, Content, Comments.TimeS from Comments, Post 
+where Comments.Post_ID= Post.Post_ID
+and Comments.Post_ID= 5;
+
+--only want to show most recent 10 comments.
+
+SELECT comment_id, Commented_By, content, Comments.TimeS 
+FROM Comments 
+WHERE Comments.Post_ID = 12 ORDER BY Comments.TimeS DESC LIMIT 10 
+
