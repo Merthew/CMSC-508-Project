@@ -8,7 +8,7 @@ LOGIN:
 3. Check if user is an admin. (check if user is admin)
 4. Show the 10 most recent posts.
 */
-
+--31Mar2020
 Insert into Users ( UserName, ScreenName, Password )
 Values ( UN, SN, PW );
 
@@ -22,13 +22,50 @@ Select UserName from Admins
 where UserName= VarUN;
 
 --------------------------------------------------------------
-SELECT Message, TimeS, Posted_By
+SELECT Message, Post.TimeS, ScreenName
 FROM
 	(
 		 SELECT *
 		 FROM Post
-		 ORDER BY TimeS DESC
+		 ORDER BY Post.TimeS DESC
 		 LIMIT 10 
-	) Post
-ORDER BY TimeS;
+	) Post, Users
+
+where UserName=Posted_By
+ORDER BY Post.TimeS DESC;
 -----------------------------------------------------------------	
+
+--02Apr2020
+
+--insert for friends:
+INSERT INTO `Friends`(`User_1`, `User_2`) 
+VALUES ([value-1],[value-2]);
+
+--insert for best_friends:
+INSERT INTO `Best_Friends`(`User_UserName`, `Friend_UserName`) 
+VALUES ([value-1],[value-2]);
+
+--insert for best_friend_request:
+INSERT INTO `Best_Friend_Request`( `BFR_F_ID`, `Requestee`) 
+VALUES ([value-1],[value-2]);
+
+--select for requests and making sure they are friends
+select user_1, user_2"User1'sFriend" from Best_Friend_Request, Friends
+where bfr_f_id= f_id;
+
+--insert for post
+INSERT INTO `Post`(`Message`,`Posted_By`) 
+VALUES[value-1],[value-2]);
+
+
+SELECT Message, Post.TimeS, ScreenName
+FROM
+    (
+         SELECT *
+         FROM Post
+         ORDER BY TimeS DESC
+         LIMIT 10 
+    ) Post, Users
+
+where UserName=Posted_By
+ORDER BY Post.TimeS DESC;
