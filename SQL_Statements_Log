@@ -94,3 +94,26 @@ SELECT comment_id, Commented_By, content, Comments.TimeS
 FROM Comments 
 WHERE Comments.Post_ID = 12 ORDER BY Comments.TimeS DESC LIMIT 10 
 
+-----------------------------------------------------------------------
+--18-Apr-2020
+
+--inserts for post likes, comments likes, friends, friend_request
+--deletes posts, deletes comments
+
+INSERT INTO `Post_Like`(`Liked_By`, `Post_ID`, `TimeS`) VALUES ('ChrisTest',7 ,CURRENT_TIMESTAMP);
+
+INSERT INTO `Comment_Like`(`Liked_By`, `Comment_ID`, `TimeS`) VALUES ('ChrisTest',7 ,CURRENT_TIMESTAMP);
+
+INSERT INTO `Friends`(`User_1`, `User_2`, `TimeS`) VALUES ('ChrisTeset','Merthew',CURRENT_TIMESTAMP);
+
+INSERT INTO `Best_Friends`(`User_UserName`, `Friend_UserName`, `TimeS`) VALUES ('ChrisTest','Merthew',CURRENT_TIMESTAMP);
+
+INSERT INTO `Best_Friend_Request`(`BFR_F_ID`, `TimeS`, `Requestee`) VALUES (1,CURRENT_TIMESTAMP,'Merthew');
+
+DELETE FROM `Post` WHERE Post_ID= 2;
+
+DELETE FROM `Comments` WHERE Comment_id= 2;
+
+DELETE FROM `Post_Like` WHERE pl_id= 1 and post_id= 1;
+
+DELETE FROM `Comment_Like` WHERE cl_id= 1 and Comment_ID= 1;
