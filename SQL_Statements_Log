@@ -117,3 +117,22 @@ DELETE FROM `Comments` WHERE Comment_id= 2;
 DELETE FROM `Post_Like` WHERE pl_id= 1 and post_id= 1;
 
 DELETE FROM `Comment_Like` WHERE cl_id= 1 and Comment_ID= 1;
+
+-----------------------------------------------------------------------
+--23-Apr-2020
+
+--Need to make profile show username, screename, current date/time, bestfriend, and No_post created.
+
+select Users.ScreenName, Friend_UserName, User_UserName , Count(Posted_By) as No_Of_Posts_Created
+from Users left join Best_Friends on Users.UserName= Best_Friends.User_UserName
+JOIN Post on Users.UserName = Post.Posted_By
+where Users.UserName= 'ChrisTest'
+group by Users.UserName, Users.ScreenName, Friend_UserName;
+
+--Need to be able to go back, view posts made by the user, go to bestfriend's profile, view their posts, change screename, logout.
+
+--need to view friends
+select User_1, User_2 from Friends;
+
+select User_2 from Friends
+where User_1= UserName;
