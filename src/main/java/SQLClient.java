@@ -7,20 +7,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SQLClient {
-
+	
 	private static Connection connection;
 	private static String sessionID;
 	private static List<Integer> localResPostId;
 	private static List<Integer> localResCommId;
 	private static int currPost;
-
+	
 	public static void main(String[] args) {
 
 		openConnection();
 
 		printWelcomeMenu();
 		inputHandler(1);
-		
+
 		printFeed();
 		inputHandler(2);
 
@@ -345,5 +345,5 @@ public class SQLClient {
 			e.printStackTrace();
 		}
 	}
-
+	
 }
