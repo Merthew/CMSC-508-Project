@@ -7,23 +7,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SQLClient {
-	
+
 	private static Connection connection;
-	private static String sessionID;
+	private static String sessionID, currIDView;
 	private static List<Integer> localResPostId;
 	private static List<Integer> localResCommId;
 	private static int currPost;
-	
+
 	public static void main(String[] args) {
 
 		openConnection();
-
 		printWelcomeMenu();
-		inputHandler(1);
-
 		printFeed();
-		inputHandler(2);
-
 		closeConnection();
 	}
 
@@ -62,20 +57,22 @@ public class SQLClient {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		//FEED MENU
 		System.out.print("\n\n1.  Select Post\n2.  Make Post\n3.  Profile\n>> ");
-
+		inputHandler(2);
 	}
-
+	//WELCOME MENU
 	private static void printWelcomeMenu() {
 		System.out.print("/=======================================\\\n" + "|===============  FUISM  ===============|\n"
 				+ "\\=======================================/\n" + "\n" + "1.  Login\n" + "2.  Register\n"
 				+ "3.  Quit\n" + ">> ");
+		inputHandler(1);
 	}
 
 	private static void inputHandler(int i) {
 		switch (i) {
+		//WELCOME MENU
 		case 1:
-			// Welcome Menu Handler
 			int temp = 1;
 			while (temp != 0) {
 				switch (Methods.getInt()) {
@@ -97,22 +94,25 @@ public class SQLClient {
 				}
 			}
 			break;
+		//FEED MENU
 		case 2:
 			temp = 1;
 			while (temp != 0) {
 				switch (Methods.getInt()) {
 				case 1:
+					//View Post
 					System.out.print("Input post number: ");
 					int index = localResPostId.get(Methods.getInt() - 1);
 					displayPost(index);
 					temp = 0;
 					break;
 				case 2:
-
+					//TODO: make post
 					temp = 0;
 					break;
 				case 3:
-
+					// view profile
+					displayProfile(sessionID);
 					temp = 0;
 					break;
 				default:
@@ -121,22 +121,24 @@ public class SQLClient {
 				}
 			}
 			break;
+		//POST MENU
 		case 3:
 			temp = 1;
 			while (temp != 0) {
 				switch (Methods.getInt()) {
 				case 1:
+					//View comment
 					System.out.print("Input comment number: ");
 					int index = localResCommId.get(Methods.getInt() - 1);
 					displayComment(index);
 					temp = 0;
 					break;
 				case 2:
-
+					//TODO: make comment
 					temp = 0;
 					break;
 				case 3:
-
+					//TODO: like post
 					temp = 0;
 					break;
 				default:
@@ -145,49 +147,139 @@ public class SQLClient {
 				}
 			}
 			break;
-			
-		
-			
+		//PROFILE MENU
+		case 4:
+			temp = 1;
+			while (temp != 0) {
+				switch (Methods.getInt()) {
+				case 1:
+					//TODO: back
+					temp = 0;
+					break;
+				case 2:
+					//TODO: BF profile
+					temp = 0;
+					break;
+				case 3:
+					viewPosts(currIDView);
+					temp = 0;
+					break;
+				case 4:
+					//View Friends
+					viewFriends();
+					temp = 0;
+					break;
+				case 5:
+					//TODO: Change Screen Name
+					temp = 0;
+					break;
+				case 6:
+					//Search User
+					System.out.print("Input username: ");
+					String username = Methods.getSterilizedString();
+					displayProfile(username);
+					temp = 0;
+					break;
+				case 7:
+					//TODO: Logout
+					temp = 0;
+					break;
+				default:
+					System.out.print(">> ");
+					break;
+				}
+			}
+			break;
+		case 5:
+			temp = 1;
+			while (temp != 0) {
+				switch (Methods.getInt()) {
+				case 1:
+					//TODO: back
+					temp = 0;
+					break;
+				case 2:
+					//TODO: BF profile
+					temp = 0;
+					break;
+				case 3:
+					//View Posts by user
+					viewPosts(currIDView);
+					temp = 0;
+					break;
+				case 4:
+					//Toggle Friend
+					toggleFriend();
+					temp = 0;
+					break;
+				default:
+					System.out.print(">> ");
+					break;
+				}
+			}
+			break;
+
 		default:
 			break;
 		}
-		
+
 	}
 
-	private static void displayComment(int index) {
-		String query = "SELECT * FROM Comments WHERE Comment_ID = \"" + index + "\"";
+	private static void toggleFriend() {
+		String query = "select User_2 from Friends where User_1= \""+ sessionID + "\"";
+		boolean isFriend = false;
 		try {
 			PreparedStatement pst = connection.prepareStatement(query);
 			ResultSet rs = pst.executeQuery();
-			rs.next();
+			while(rs.next()) {
+				System.out.println("LOG: " + rs.getString("User_2")+ "\nLOG: " + currIDView);
+				if(rs.getString("User_2") == currIDView) {
+					isFriend = true;
+				}
+			}
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+		
+		if(isFriend) {
+			String query1 = "DELETE FROM Friends WHERE User_1 = \"" + sessionID + "\"and User_2 =\"" + currIDView + "\"";
 			try {
-				String query1 = "SELECT ScreenName FROM Users WHERE UserName = \"" + rs.getString("Commented_By")
-						+ "\"";
-				PreparedStatement pst1 = connection.prepareStatement(query1);
-				ResultSet rs1 = pst1.executeQuery();
-				rs1.next();
-
-				System.out.printf("\n\n%-20s %s\n%s", rs1.getString("ScreenName"), rs.getString("Comments.TimeS"),
-						rs.getString("Content"));
-				
-				localResCommId.add(rs.getInt("Comment_ID"));
-
+				PreparedStatement pst = connection.prepareStatement(query1);
+				pst.executeUpdate();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			
+		}
+		else {
+			String query1 = "INSERT INTO `Friends`(`User_1`, `User_2`, `TimeS`) VALUES (\'" + sessionID +  "\',\'" + currIDView + "\',CURRENT_TIMESTAMP)";
+			try {
+				PreparedStatement pst = connection.prepareStatement(query1);
+				pst.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		displayProfile(currIDView);
+	}
+
+	private static void viewPosts(String user) {
+		String query = "select Post_ID, Message,TimeS from Post where Posted_By = \""+ user + "\"";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			while(rs.next()) {
+				printPost(rs.getInt("Post_ID"));
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		//TODO: Add menu
 	}
 
-	private static void displayPost(int index) {
-		currPost = index;
-		if (localResCommId == null) {
-			localResCommId = new ArrayList<Integer>();
-		} else {
-			localResCommId.clear();
-		}
+	private static void printPost(int index) {
 		String query = "SELECT * FROM Post WHERE Post_ID = \"" + index + "\"";
 
 		try {
@@ -210,6 +302,129 @@ public class SQLClient {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static void viewFriends() {
+		String query = "select User_2 from Friends where User_1= \""+ currIDView + "\"";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			int i = 1;
+			System.out.println("\n---------------------------------------");
+			while(rs.next()) {
+				System.out.printf("\n%d: %-20s", i, rs.getString("User_2"));
+				++ i;
+			}
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+		//TODO: FRIEND LIST MENU
+	}
+
+	private static void displayProfile(String user) {
+		currIDView = user;
+		System.out.println("\n---------------------------------------");
+
+		String query = "SELECT Users.ScreenName, COUNT(Post.Post_ID) AS No_Of_Posts_Created, Best_Friends.User_UserName, Best_Friends.Friend_UserName FROM Users "
+				+ "LEFT JOIN Best_Friends ON Users.UserName = Best_Friends.User_UserName OR Users.UserName = Best_Friends.Friend_UserName LEFT JOIN Post ON Users.UserName = Post.Posted_By WHERE Users.UserName = \""
+				+ user + "\"GROUP BY Users.UserName, Best_Friends.User_UserName, Best_Friends.Friend_UserName";
+
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			rs.next();
+			
+			String friend = rs.getString("Friend_UserName");
+			if(friend == user) {
+				friend = rs.getString("User_UserName");
+			}
+			if(friend == null) {
+				friend = "None";
+			}
+			
+			System.out.printf("Username: %-20s Screen Name: %-20s\nPosts: %d\n\nBest Friend: %-20s\n\n", user,
+					rs.getString("ScreenName"), rs.getInt("No_Of_Posts_Created"), friend);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		if(user == sessionID) {
+			//PROFILE MENU
+			System.out.print("1.  Back\n2.  Go to BF profile\n3.  View posts by user\n4.  View Friends\n5.  Change Screen Name\n6.  Search User\n7.  Logout\n>> ");
+			inputHandler(4);
+		}
+		else {
+			//PROFILE NOT YOU MENU
+			
+			String query1 = "select User_2 from Friends where User_1= \""+ sessionID + "\"";
+			boolean isFriend = false;
+			try {
+				PreparedStatement pst = connection.prepareStatement(query1);
+				ResultSet rs = pst.executeQuery();
+				while(rs.next()) {
+					
+					if(rs.getString("User_2").equals(user)) {
+						
+						isFriend = true;
+					}
+				}
+			} catch (SQLException e) {
+
+				e.printStackTrace();
+			}
+			
+			if(isFriend) {
+				System.out.print("1.  Back\n2.  Go to BF profile\n3.  View posts by user\n4.  Remove Friend\n>> ");
+				inputHandler(5);
+			}
+			else {
+				System.out.print("1.  Back\n2.  Go to BF profile\n3.  View posts by user\n4.  Add Friend\n>> ");
+				inputHandler(5);
+			}
+		}
+	}
+
+	private static void displayComment(int index) {
+		String query = "SELECT * FROM Comments WHERE Comment_ID = \"" + index + "\"";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			rs.next();
+			try {
+				String query1 = "SELECT ScreenName FROM Users WHERE UserName = \"" + rs.getString("Commented_By")
+						+ "\"";
+				PreparedStatement pst1 = connection.prepareStatement(query1);
+				ResultSet rs1 = pst1.executeQuery();
+				rs1.next();
+
+				System.out.printf("\n\n%-20s %s\n%s", rs1.getString("ScreenName"), rs.getString("Comments.TimeS"),
+						rs.getString("Content"));
+
+				localResCommId.add(rs.getInt("Comment_ID"));
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		//TODO: Make comment menu
+	}
+
+	private static void displayPost(int index) {
+		currPost = index;
+		if (localResCommId == null) {
+			localResCommId = new ArrayList<Integer>();
+		} else {
+			localResCommId.clear();
+		}
+		printPost(index);
 		System.out.println("\n---------------------------------------");
 		String commQuery = "SELECT Commented_By, content, Comments.TimeS, Comment_ID FROM Comments WHERE Comments.Post_ID = \""
 				+ index + "\" ORDER BY Comments.TimeS DESC LIMIT 10 ";
@@ -226,7 +441,7 @@ public class SQLClient {
 
 					System.out.printf("\n\n%-20s %s\n%s", rs1.getString("ScreenName"), rs.getString("Comments.TimeS"),
 							rs.getString("Content"));
-					
+
 					localResCommId.add(rs.getInt("Comment_ID"));
 
 				} catch (SQLException e) {
@@ -236,7 +451,8 @@ public class SQLClient {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
+		
+		//POST MENU
 		System.out.print("\n\n1.  Select Comment\n2.  Make Comment\n3.  Like Post\n>> ");
 		inputHandler(3);
 	}
@@ -345,5 +561,5 @@ public class SQLClient {
 			e.printStackTrace();
 		}
 	}
-	
+
 }
