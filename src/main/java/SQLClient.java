@@ -57,11 +57,12 @@ public class SQLClient {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		//FEED MENU
+		// FEED MENU
 		System.out.print("\n\n1.  Select Post\n2.  Make Post\n3.  Profile\n>> ");
 		inputHandler(2);
 	}
-	//WELCOME MENU
+
+	// WELCOME MENU
 	private static void printWelcomeMenu() {
 		System.out.print("/=======================================\\\n" + "|===============  FUISM  ===============|\n"
 				+ "\\=======================================/\n" + "\n" + "1.  Login\n" + "2.  Register\n"
@@ -71,7 +72,7 @@ public class SQLClient {
 
 	private static void inputHandler(int i) {
 		switch (i) {
-		//WELCOME MENU
+		// WELCOME MENU
 		case 1:
 			int temp = 1;
 			while (temp != 0) {
@@ -94,20 +95,20 @@ public class SQLClient {
 				}
 			}
 			break;
-		//FEED MENU
+		// FEED MENU
 		case 2:
 			temp = 1;
 			while (temp != 0) {
 				switch (Methods.getInt()) {
 				case 1:
-					//View Post
+					// View Post
 					System.out.print("Input post number: ");
 					int index = localResPostId.get(Methods.getInt() - 1);
 					displayPost(index);
 					temp = 0;
 					break;
 				case 2:
-					//TODO: make post
+					// TODO: make post
 					temp = 0;
 					break;
 				case 3:
@@ -121,24 +122,25 @@ public class SQLClient {
 				}
 			}
 			break;
-		//POST MENU
+		// POST MENU
 		case 3:
 			temp = 1;
 			while (temp != 0) {
 				switch (Methods.getInt()) {
 				case 1:
-					//View comment
+					// View comment
 					System.out.print("Input comment number: ");
 					int index = localResCommId.get(Methods.getInt() - 1);
 					displayComment(index);
 					temp = 0;
 					break;
 				case 2:
-					//TODO: make comment
+					// TODO: make comment
 					temp = 0;
 					break;
 				case 3:
-					//TODO: like post
+					//Like post
+					likePost();
 					temp = 0;
 					break;
 				default:
@@ -147,17 +149,18 @@ public class SQLClient {
 				}
 			}
 			break;
-		//PROFILE MENU
+		// PROFILE MENU
 		case 4:
 			temp = 1;
 			while (temp != 0) {
 				switch (Methods.getInt()) {
 				case 1:
-					//TODO: back
+					// Back
+					printFeed();
 					temp = 0;
 					break;
 				case 2:
-					//TODO: BF profile
+					// TODO: BF profile
 					temp = 0;
 					break;
 				case 3:
@@ -165,23 +168,26 @@ public class SQLClient {
 					temp = 0;
 					break;
 				case 4:
-					//View Friends
+					// View Friends
 					viewFriends();
 					temp = 0;
 					break;
 				case 5:
-					//TODO: Change Screen Name
+					// Update Screen Name
+					System.out.print("Input new screen name: ");
+					String name = Methods.getSterilizedString();
+					updateScreenName(name);
 					temp = 0;
 					break;
 				case 6:
-					//Search User
+					// Search User
 					System.out.print("Input username: ");
 					String username = Methods.getSterilizedString();
 					displayProfile(username);
 					temp = 0;
 					break;
 				case 7:
-					//TODO: Logout
+					//Logout
 					temp = 0;
 					break;
 				default:
@@ -195,20 +201,21 @@ public class SQLClient {
 			while (temp != 0) {
 				switch (Methods.getInt()) {
 				case 1:
-					//TODO: back
+					// Back
+					printFeed();
 					temp = 0;
 					break;
 				case 2:
-					//TODO: BF profile
+					// TODO: BF profile
 					temp = 0;
 					break;
 				case 3:
-					//View Posts by user
+					// View Posts by user
 					viewPosts(currIDView);
 					temp = 0;
 					break;
 				case 4:
-					//Toggle Friend
+					// Toggle Friend
 					toggleFriend();
 					temp = 0;
 					break;
@@ -225,34 +232,79 @@ public class SQLClient {
 
 	}
 
-	private static void toggleFriend() {
-		String query = "select User_2 from Friends where User_1= \""+ sessionID + "\"";
-		boolean isFriend = false;
+	private static void likePost() {
+		boolean liked = false;
+		String q = "SELECT PL_ID FROM Post_Like WHERE Post_ID = \'" + currPost + "\' AND Liked_By = \'" + sessionID + "\'";
 		try {
-			PreparedStatement pst = connection.prepareStatement(query);
+			PreparedStatement pst = connection.prepareStatement(q);
 			ResultSet rs = pst.executeQuery();
-			while(rs.next()) {
-				System.out.println("LOG: " + rs.getString("User_2")+ "\nLOG: " + currIDView);
-				if(rs.getString("User_2") == currIDView) {
-					isFriend = true;
-				}
+			if(rs.next()) {
+				liked = true;
 			}
-		} catch (SQLException e) {
-
-			e.printStackTrace();
+		} catch (SQLException e1) {
+			e1.printStackTrace();
 		}
-		
-		if(isFriend) {
-			String query1 = "DELETE FROM Friends WHERE User_1 = \"" + sessionID + "\"and User_2 =\"" + currIDView + "\"";
+		if(liked) {
+			String query = "DELETE FROM `Post_Like` WHERE Post_ID = \'"+ currPost +"\' AND Liked_By = \'"+ sessionID +"\'";
 			try {
-				PreparedStatement pst = connection.prepareStatement(query1);
+				PreparedStatement pst = connection.prepareStatement(query);
 				pst.executeUpdate();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
 		else {
-			String query1 = "INSERT INTO `Friends`(`User_1`, `User_2`, `TimeS`) VALUES (\'" + sessionID +  "\',\'" + currIDView + "\',CURRENT_TIMESTAMP)";
+			String query = "INSERT INTO `Post_Like`(`Liked_By`, `Post_ID`, `TimeS`) VALUES (\'" + sessionID + "\', \'"+ currPost +"\' , CURRENT_TIMESTAMP)";
+			try {
+				PreparedStatement pst = connection.prepareStatement(query);
+				pst.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		printFeed();
+	}
+
+	private static void updateScreenName(String name) {
+		String query = "update Users set ScreenName = \"" + name + "\" where UserName = \"" + sessionID + "\"";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void toggleFriend() {
+		String query = "select User_2 from Friends where User_1= \"" + sessionID + "\"";
+		boolean isFriend = false;
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			while (rs.next()) {
+				String temp1 = rs.getString("User_2");
+				String temp2 = currIDView;
+				if (temp2.equals(temp1)) {
+					isFriend = true;
+					break;
+				}
+			}
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+		if (isFriend) {
+			String query1 = "DELETE FROM Friends WHERE User_1 = \"" + sessionID + "\"and User_2 =\"" + currIDView
+					+ "\"";
+			try {
+				PreparedStatement pst = connection.prepareStatement(query1);
+				pst.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else {
+			String query1 = "INSERT INTO `Friends`(`User_1`, `User_2`, `TimeS`) VALUES (\'" + sessionID + "\',\'"
+					+ currIDView + "\',CURRENT_TIMESTAMP)";
 			try {
 				PreparedStatement pst = connection.prepareStatement(query1);
 				pst.executeUpdate();
@@ -260,23 +312,23 @@ public class SQLClient {
 				e.printStackTrace();
 			}
 		}
-		
+
 		displayProfile(currIDView);
 	}
 
 	private static void viewPosts(String user) {
-		String query = "select Post_ID, Message,TimeS from Post where Posted_By = \""+ user + "\"";
+		String query = "select Post_ID, Message,TimeS from Post where Posted_By = \"" + user + "\"";
 		try {
 			PreparedStatement pst = connection.prepareStatement(query);
 			ResultSet rs = pst.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				printPost(rs.getInt("Post_ID"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		//TODO: Add menu
+
+		// TODO: Add menu
 	}
 
 	private static void printPost(int index) {
@@ -305,21 +357,21 @@ public class SQLClient {
 	}
 
 	private static void viewFriends() {
-		String query = "select User_2 from Friends where User_1= \""+ currIDView + "\"";
+		String query = "select User_2 from Friends where User_1= \"" + currIDView + "\"";
 		try {
 			PreparedStatement pst = connection.prepareStatement(query);
 			ResultSet rs = pst.executeQuery();
 			int i = 1;
 			System.out.println("\n---------------------------------------");
-			while(rs.next()) {
+			while (rs.next()) {
 				System.out.printf("\n%d: %-20s", i, rs.getString("User_2"));
-				++ i;
+				++i;
 			}
 		} catch (SQLException e) {
 
 			e.printStackTrace();
 		}
-		//TODO: FRIEND LIST MENU
+		// TODO: FRIEND LIST MENU
 	}
 
 	private static void displayProfile(String user) {
@@ -334,41 +386,39 @@ public class SQLClient {
 			PreparedStatement pst = connection.prepareStatement(query);
 			ResultSet rs = pst.executeQuery();
 			rs.next();
-			
+
 			String friend = rs.getString("Friend_UserName");
-			if(friend == user) {
+			if (friend == user) {
 				friend = rs.getString("User_UserName");
 			}
-			if(friend == null) {
+			if (friend == null) {
 				friend = "None";
 			}
-			
+
 			System.out.printf("Username: %-20s Screen Name: %-20s\nPosts: %d\n\nBest Friend: %-20s\n\n", user,
 					rs.getString("ScreenName"), rs.getInt("No_Of_Posts_Created"), friend);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		
-		
-		if(user == sessionID) {
-			//PROFILE MENU
-			System.out.print("1.  Back\n2.  Go to BF profile\n3.  View posts by user\n4.  View Friends\n5.  Change Screen Name\n6.  Search User\n7.  Logout\n>> ");
+
+		if (user == sessionID) {
+			// PROFILE MENU
+			System.out.print(
+					"1.  Back\n2.  Go to BF profile\n3.  View posts by user\n4.  View Friends\n5.  Change Screen Name\n6.  Search User\n7.  Logout\n>> ");
 			inputHandler(4);
-		}
-		else {
-			//PROFILE NOT YOU MENU
-			
-			String query1 = "select User_2 from Friends where User_1= \""+ sessionID + "\"";
+		} else {
+			// PROFILE NOT YOU MENU
+
+			String query1 = "select User_2 from Friends where User_1= \"" + sessionID + "\"";
 			boolean isFriend = false;
 			try {
 				PreparedStatement pst = connection.prepareStatement(query1);
 				ResultSet rs = pst.executeQuery();
-				while(rs.next()) {
-					
-					if(rs.getString("User_2").equals(user)) {
-						
+				while (rs.next()) {
+
+					if (rs.getString("User_2").equals(user)) {
+
 						isFriend = true;
 					}
 				}
@@ -376,12 +426,11 @@ public class SQLClient {
 
 				e.printStackTrace();
 			}
-			
-			if(isFriend) {
+
+			if (isFriend) {
 				System.out.print("1.  Back\n2.  Go to BF profile\n3.  View posts by user\n4.  Remove Friend\n>> ");
 				inputHandler(5);
-			}
-			else {
+			} else {
 				System.out.print("1.  Back\n2.  Go to BF profile\n3.  View posts by user\n4.  Add Friend\n>> ");
 				inputHandler(5);
 			}
@@ -413,8 +462,8 @@ public class SQLClient {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		//TODO: Make comment menu
+
+		// TODO: Make comment menu
 	}
 
 	private static void displayPost(int index) {
@@ -451,8 +500,8 @@ public class SQLClient {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		//POST MENU
+
+		// POST MENU
 		System.out.print("\n\n1.  Select Comment\n2.  Make Comment\n3.  Like Post\n>> ");
 		inputHandler(3);
 	}
