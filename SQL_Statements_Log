@@ -136,3 +136,20 @@ select User_1, User_2 from Friends;
 
 select User_2 from Friends
 where User_1= UserName;
+
+--posts for a given user.
+select Post_ID, Message,TimeS from Post
+where Posted_By= User;
+
+DELETE FROM Friends WHERE User_1= 
+and User_2=;
+
+-----------------------------------------------------------------------
+--24-Apr-2020
+
+--update screename
+update Users
+set ScreenName= 
+where UserName=
+;
+
