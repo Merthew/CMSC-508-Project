@@ -188,6 +188,8 @@ public class SQLClient {
 					break;
 				case 7:
 					//Logout
+					printWelcomeMenu();
+					printFeed();
 					temp = 0;
 					break;
 				default:
