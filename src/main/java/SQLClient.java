@@ -12,6 +12,7 @@ public class SQLClient {
 	private static String sessionID, currIDView;
 	private static List<Integer> localResPostId;
 	private static List<Integer> localResCommId;
+	private static List<String> localResFriendId;
 	private static int currPost;
 
 	public static void main(String[] args) {
@@ -139,7 +140,7 @@ public class SQLClient {
 					temp = 0;
 					break;
 				case 3:
-					//Like post
+					// Like post
 					likePost();
 					temp = 0;
 					break;
@@ -160,7 +161,8 @@ public class SQLClient {
 					temp = 0;
 					break;
 				case 2:
-					// TODO: BF profile
+					// BF profile
+					displayBFProfile(sessionID);
 					temp = 0;
 					break;
 				case 3:
@@ -187,7 +189,7 @@ public class SQLClient {
 					temp = 0;
 					break;
 				case 7:
-					//Logout
+					// Logout
 					printWelcomeMenu();
 					printFeed();
 					temp = 0;
@@ -204,11 +206,12 @@ public class SQLClient {
 				switch (Methods.getInt()) {
 				case 1:
 					// Back
-					printFeed();
+					displayProfile(sessionID);
 					temp = 0;
 					break;
 				case 2:
-					// TODO: BF profile
+					// BF profile
+					displayBFProfile(currIDView);
 					temp = 0;
 					break;
 				case 3:
@@ -227,6 +230,35 @@ public class SQLClient {
 				}
 			}
 			break;
+		case 6:
+			temp = 1;
+			while (temp != 0) {
+				switch (Methods.getInt()) {
+				case 1:
+					// Back
+					displayProfile(sessionID);
+					temp = 0;
+					break;
+				case 2:
+					// Select Friend
+					System.out.print("Input friend number: ");
+					int index = Methods.getInt() - 1;
+					displayProfile(localResFriendId.get(index));
+					temp = 0;
+					break;
+				case 3:
+					// Make Best Friend
+					System.out.print("Input friend number: ");
+					int index1 = Methods.getInt() - 1;
+					makeBestFriend(localResFriendId.get(index1));
+					temp = 0;
+					break;
+				default:
+					System.out.print(">> ");
+					break;
+				}
+			}
+			break;
 
 		default:
 			break;
@@ -234,29 +266,65 @@ public class SQLClient {
 
 	}
 
+	private static void displayBFProfile(String Username) {
+		String query = "SELECT Best_Friends.Friend_UserName FROM Best_Friends WHERE Best_Friends.User_UserName = \'"
+				+ Username + "\'";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			rs.next();
+			String user = rs.getString("Friend_UserName");
+			displayProfile(user);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void makeBestFriend(String username) {
+		String delete = "DELETE FROM `Best_Friends` WHERE `User_UserName` = \'" + sessionID + "\'";
+		try {
+			PreparedStatement pst = connection.prepareStatement(delete);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		String query = "INSERT INTO `Best_Friends`(`User_UserName`, `Friend_UserName`, `TimeS`) VALUES (\'" + sessionID
+				+ "\', \'" + username + "\',CURRENT_TIMESTAMP)";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		displayProfile(sessionID);
+	}
+
 	private static void likePost() {
 		boolean liked = false;
-		String q = "SELECT PL_ID FROM Post_Like WHERE Post_ID = \'" + currPost + "\' AND Liked_By = \'" + sessionID + "\'";
+		String q = "SELECT PL_ID FROM Post_Like WHERE Post_ID = \'" + currPost + "\' AND Liked_By = \'" + sessionID
+				+ "\'";
 		try {
 			PreparedStatement pst = connection.prepareStatement(q);
 			ResultSet rs = pst.executeQuery();
-			if(rs.next()) {
+			if (rs.next()) {
 				liked = true;
 			}
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
-		if(liked) {
-			String query = "DELETE FROM `Post_Like` WHERE Post_ID = \'"+ currPost +"\' AND Liked_By = \'"+ sessionID +"\'";
+		if (liked) {
+			String query = "DELETE FROM `Post_Like` WHERE Post_ID = \'" + currPost + "\' AND Liked_By = \'" + sessionID
+					+ "\'";
 			try {
 				PreparedStatement pst = connection.prepareStatement(query);
 				pst.executeUpdate();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-		}
-		else {
-			String query = "INSERT INTO `Post_Like`(`Liked_By`, `Post_ID`, `TimeS`) VALUES (\'" + sessionID + "\', \'"+ currPost +"\' , CURRENT_TIMESTAMP)";
+		} else {
+			String query = "INSERT INTO `Post_Like`(`Liked_By`, `Post_ID`, `TimeS`) VALUES (\'" + sessionID + "\', \'"
+					+ currPost + "\' , CURRENT_TIMESTAMP)";
 			try {
 				PreparedStatement pst = connection.prepareStatement(query);
 				pst.executeUpdate();
@@ -267,6 +335,7 @@ public class SQLClient {
 		printFeed();
 	}
 
+	// TODO: Check if this ends the program
 	private static void updateScreenName(String name) {
 		String query = "update Users set ScreenName = \"" + name + "\" where UserName = \"" + sessionID + "\"";
 		try {
@@ -319,6 +388,12 @@ public class SQLClient {
 	}
 
 	private static void viewPosts(String user) {
+		if (localResPostId == null) {
+			localResPostId = new ArrayList<Integer>();
+		} else {
+			localResPostId.clear();
+		}
+		
 		String query = "select Post_ID, Message,TimeS from Post where Posted_By = \"" + user + "\"";
 		try {
 			PreparedStatement pst = connection.prepareStatement(query);
@@ -359,6 +434,11 @@ public class SQLClient {
 	}
 
 	private static void viewFriends() {
+		if (localResFriendId == null) {
+			localResFriendId = new ArrayList<String>();
+		} else {
+			localResFriendId.clear();
+		}
 		String query = "select User_2 from Friends where User_1= \"" + currIDView + "\"";
 		try {
 			PreparedStatement pst = connection.prepareStatement(query);
@@ -366,14 +446,17 @@ public class SQLClient {
 			int i = 1;
 			System.out.println("\n---------------------------------------");
 			while (rs.next()) {
-				System.out.printf("\n%d: %-20s", i, rs.getString("User_2"));
+				System.out.printf("\n%d: %-20s\n", i, rs.getString("User_2"));
+				localResFriendId.add(rs.getString("User_2"));
 				++i;
 			}
 		} catch (SQLException e) {
 
 			e.printStackTrace();
 		}
-		// TODO: FRIEND LIST MENU
+
+		System.out.print("\n1.  Back\n2.  Select Friend\n3.  Make Best Friend\n>> ");
+		inputHandler(6);
 	}
 
 	private static void displayProfile(String user) {
