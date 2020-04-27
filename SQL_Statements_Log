@@ -153,3 +153,28 @@ set ScreenName=
 where UserName=
 ;
 
+-----------------------------------------------------------------------
+--26-Apr-2020
+
+--update google doc for typos and out of date work plans.
+
+
+-----------------------------------------------------------------------
+--27-Apr-2020
+
+--remove BFR table and anything from the google doc regarding BFR. 
+--updated diagram.
+
+--need to add handling if searching for users fails.
+
+select Friend_UserName from Best_Friends where User_UserName= '   ';
+
+--deleting a post and/or comment(s).
+
+DELETE FROM `Comment_Like` WHERE  Comment_ID= 1;
+
+DELETE FROM `Comments` WHERE Comments.Post_ID= 2;
+
+DELETE FROM `Post_Like` WHERE post_id= 1;
+
+DELETE FROM `Post` WHERE Post_ID= 2;
