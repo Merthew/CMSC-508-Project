@@ -8,12 +8,14 @@ import java.util.List;
 
 public class SQLClient {
 
+	// TODO: Delete posts/comments as admin
+
 	private static Connection connection;
 	private static String sessionID, currIDView;
 	private static List<Integer> localResPostId;
 	private static List<Integer> localResCommId;
 	private static List<String> localResFriendId;
-	private static int currPost;
+	private static int currPost, currComm;
 
 	public static void main(String[] args) {
 
@@ -31,7 +33,7 @@ public class SQLClient {
 			localResPostId.clear();
 		}
 
-		System.out.println("Welcome " + sessionID);
+		System.out.println("\n=========================================\nWelcome " + sessionID);
 
 		try {
 			String query = "SELECT Message, TimeS, Posted_By, Post_ID FROM( SELECT * FROM Post ORDER BY TimeS DESC LIMIT 10 ) Post ORDER BY TimeS DESC";
@@ -109,7 +111,8 @@ public class SQLClient {
 					temp = 0;
 					break;
 				case 2:
-					// TODO: make post
+					// make post
+					makePost();
 					temp = 0;
 					break;
 				case 3:
@@ -136,7 +139,8 @@ public class SQLClient {
 					temp = 0;
 					break;
 				case 2:
-					// TODO: make comment
+					// make comment
+					makeComment();
 					temp = 0;
 					break;
 				case 3:
@@ -259,11 +263,96 @@ public class SQLClient {
 				}
 			}
 			break;
+		case 7:
+			temp = 1;
+			while (temp != 0) {
+				switch (Methods.getInt()) {
+				case 1:
+					// Back
+					displayPost(currPost);
+					temp = 0;
+					break;
+				case 2:
+					// Like Comment
+					likeComment();
+					temp = 0;
+					break;
+				default:
+					System.out.print(">> ");
+					break;
+				}
+			}
+			break;
 
 		default:
 			break;
 		}
 
+	}
+
+	private static void likeComment() {
+		boolean liked = false;
+		String query = "SELECT CL_ID FROM Comment_Like WHERE Liked_By = '" + sessionID + "' AND Comment_ID = '"
+				+ currComm + "'";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			ResultSet rs = pst.executeQuery();
+			if (rs.next()) {
+				liked = true;
+			}
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+
+		if (liked) {
+			query = "DELETE FROM Comment_Like WHERE Liked_By = '" + sessionID + "' and Comment_ID = " + currComm + "";
+			try {
+				PreparedStatement pst = connection.prepareStatement(query);
+				pst.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else {
+			query = "INSERT INTO Comment_Like(Comment_Like.Liked_By, Comment_Like.Comment_ID, Comment_Like.TimeS) VALUES ('"
+					+ sessionID + "', " + currComm + ", CURRENT_TIMESTAMP)";
+			try {
+				PreparedStatement pst = connection.prepareStatement(query);
+				pst.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		printFeed();
+	}
+
+	private static void makeComment() {
+		System.out.print("Enter your comment message: ");
+
+		String message = Methods.getSterilizedMessage();
+		String query = "INSERT INTO Comments(Comments.Commented_By, Comments.Post_ID, Comments.Content, Comments.TimeS) VALUES ('"
+				+ sessionID + "', " + currPost + ", '" + message + "', CURRENT_TIMESTAMP)";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		displayPost(currPost);
+	}
+
+	private static void makePost() {
+		System.out.print("Enter your post message: ");
+
+		String message = Methods.getSterilizedMessage();
+		String query = "INSERT INTO Post(Post.Message, Post.Posted_By, Post.TimeS) VALUES('" + message + "', '"
+				+ sessionID + "' ,CURRENT_TIMESTAMP)";
+		try {
+			PreparedStatement pst = connection.prepareStatement(query);
+			pst.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		printFeed();
 	}
 
 	private static void displayBFProfile(String Username) {
@@ -332,10 +421,10 @@ public class SQLClient {
 				e.printStackTrace();
 			}
 		}
-		printFeed();
+		printPost(currPost);
 	}
 
-	// TODO: Check if this ends the program
+	// XXX: Check if this ends the program
 	private static void updateScreenName(String name) {
 		String query = "update Users set ScreenName = \"" + name + "\" where UserName = \"" + sessionID + "\"";
 		try {
@@ -393,7 +482,7 @@ public class SQLClient {
 		} else {
 			localResPostId.clear();
 		}
-		
+
 		String query = "select Post_ID, Message,TimeS from Post where Posted_By = \"" + user + "\"";
 		try {
 			PreparedStatement pst = connection.prepareStatement(query);
@@ -405,7 +494,7 @@ public class SQLClient {
 			e.printStackTrace();
 		}
 
-		// TODO: Add menu
+		// TODO: View User's posts menu
 	}
 
 	private static void printPost(int index) {
@@ -523,6 +612,7 @@ public class SQLClient {
 	}
 
 	private static void displayComment(int index) {
+		currComm = index;
 		String query = "SELECT * FROM Comments WHERE Comment_ID = \"" + index + "\"";
 		try {
 			PreparedStatement pst = connection.prepareStatement(query);
@@ -548,7 +638,9 @@ public class SQLClient {
 			e.printStackTrace();
 		}
 
-		// TODO: Make comment menu
+		// Comment menu
+		System.out.print("1.  Back\n2.  Like Comment\n>> ");
+		inputHandler(7);
 	}
 
 	private static void displayPost(int index) {

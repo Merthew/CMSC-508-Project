@@ -53,6 +53,35 @@ public class Methods {
 		}
 		return temp;
 	}
+	
+	public static String getSterilizedMessage() {
+		if(input.hasNextLine()) {
+			input.nextLine();
+		}
+		ArrayList<Character> allowedChars = new ArrayList<Character>();
+		allowedChars.add('-');
+		allowedChars.add('_');
+		allowedChars.add('\\');
+		allowedChars.add('/');
+		allowedChars.add('|');
+		allowedChars.add('.');
+		allowedChars.add('\"');
+		allowedChars.add('\'');
+		allowedChars.add('{');
+		allowedChars.add('}');
+		allowedChars.add(' ');
+		String temp = input.nextLine();
+		
+		char[] c = temp.toCharArray();
+		temp = "";
+		for (int i = 0; i < c.length; ++i) {
+			if (Character.isLetter(c[i]) || Character.isDigit(c[i]) || allowedChars.contains(c[i])) {
+				temp += c[i];
+			}
+		}
+		
+		return temp;
+	}
 
 	// Stole this from geeksforgeeks
 	public static String getMd5(String input) {
