@@ -1,11 +1,6 @@
-# CMSC-508-Project
+# FUISM
+### CMSC-508-Project
 
+A simplistic social media application created by Timothy (Em) Patterson and Christopher Gupta. 
 
-## ToDO:
-
-- Add SQL log for Chris
-
-## SQL Code:
-
-- CODE 1
-- Code 2
+Our goal was to create a social media application reminicent of the older days of the internet.
