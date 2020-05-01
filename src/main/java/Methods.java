@@ -28,7 +28,7 @@ public class Methods {
 		char[] c = temp.toCharArray();
 		temp = "";
 		for (int i = 0; i < c.length; ++i) {
-			if (Character.isLetter(c[i]) || Character.isDigit(c[i])) {
+			if (Character.isLetter(c[i]) || Character.isDigit(c[i]) || c[i] == ' ') {
 				temp += c[i];
 			}
 		}

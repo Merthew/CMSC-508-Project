@@ -8,7 +8,7 @@ import java.util.List;
 
 public class SQLClient {
 
-	// TODO: Delete posts/comments as admin
+	// TODO: Error Handling
 
 	private static Connection connection;
 	private static String sessionID, currIDView;
@@ -105,9 +105,14 @@ public class SQLClient {
 				switch (Methods.getInt()) {
 				case 1:
 					// View Post
-					System.out.print("Input post number: ");
-					int index = localResPostId.get(Methods.getInt() - 1);
-					displayPost(index);
+					if (localResPostId.isEmpty()) {
+						System.out.print("No posts.\n>> ");
+						inputHandler(2);
+					} else {
+						System.out.print("Input post number: ");
+						int index = localResPostId.get(Methods.getInt() - 1);
+						displayPost(index);
+					}
 					temp = 0;
 					break;
 				case 2:
@@ -132,18 +137,28 @@ public class SQLClient {
 			while (temp != 0) {
 				switch (Methods.getInt()) {
 				case 1:
-					// View comment
-					System.out.print("Input comment number: ");
-					int index = localResCommId.get(Methods.getInt() - 1);
-					displayComment(index);
+					// Back
+					printFeed();
 					temp = 0;
 					break;
 				case 2:
+					// View comment
+					if (localResCommId.isEmpty()) {
+						System.out.print("No comments.\n>> ");
+						inputHandler(3);
+					} else {
+						System.out.print("Input comment number: ");
+						int index = localResCommId.get(Methods.getInt() - 1);
+						displayComment(index);
+					}
+					temp = 0;
+					break;
+				case 3:
 					// make comment
 					makeComment();
 					temp = 0;
 					break;
-				case 3:
+				case 4:
 					// Like post
 					likePost();
 					temp = 0;
@@ -245,16 +260,26 @@ public class SQLClient {
 					break;
 				case 2:
 					// Select Friend
-					System.out.print("Input friend number: ");
-					int index = Methods.getInt() - 1;
-					displayProfile(localResFriendId.get(index));
+					if (localResFriendId.isEmpty()) {
+						System.out.print("No friends.\n>> ");
+						inputHandler(6);
+					} else {
+						System.out.print("Input friend number: ");
+						int index = Methods.getInt() - 1;
+						displayProfile(localResFriendId.get(index));
+					}
 					temp = 0;
 					break;
 				case 3:
 					// Make Best Friend
-					System.out.print("Input friend number: ");
-					int index1 = Methods.getInt() - 1;
-					makeBestFriend(localResFriendId.get(index1));
+					if (localResFriendId.isEmpty()) {
+						System.out.print("No friends.\n>> ");
+						inputHandler(6);
+					} else {
+						System.out.print("Input friend number: ");
+						int index1 = Methods.getInt() - 1;
+						makeBestFriend(localResFriendId.get(index1));
+					}
 					temp = 0;
 					break;
 				default:
@@ -275,6 +300,32 @@ public class SQLClient {
 				case 2:
 					// Like Comment
 					likeComment();
+					temp = 0;
+					break;
+				default:
+					System.out.print(">> ");
+					break;
+				}
+			}
+			break;
+		case 8:
+			temp = 1;
+			while (temp != 0) {
+				switch (Methods.getInt()) {
+				case 1:
+					// Back
+					displayProfile(currIDView);
+					temp = 0;
+					break;
+				case 2:
+					// Display Post
+					if(localResPostId.isEmpty()) {
+						System.out.print("No posts.\n>> ");
+						inputHandler(8);
+					}
+					System.out.print("Input post number: ");
+					int index = localResPostId.get(Methods.getInt() - 1);
+					displayPost(index);
 					temp = 0;
 					break;
 				default:
@@ -424,7 +475,6 @@ public class SQLClient {
 		printPost(currPost);
 	}
 
-	// XXX: Check if this ends the program
 	private static void updateScreenName(String name) {
 		String query = "update Users set ScreenName = \"" + name + "\" where UserName = \"" + sessionID + "\"";
 		try {
@@ -433,6 +483,7 @@ public class SQLClient {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		displayProfile(sessionID);
 	}
 
 	private static void toggleFriend() {
@@ -489,12 +540,15 @@ public class SQLClient {
 			ResultSet rs = pst.executeQuery();
 			while (rs.next()) {
 				printPost(rs.getInt("Post_ID"));
+				localResPostId.add(rs.getInt("Post_ID"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
-		// TODO: View User's posts menu
+		// View User's posts menu
+		System.out.print("\n1.  Back\n2.  Select Post\n>> ");
+		inputHandler(8);
 	}
 
 	private static void printPost(int index) {
@@ -559,18 +613,21 @@ public class SQLClient {
 		try {
 			PreparedStatement pst = connection.prepareStatement(query);
 			ResultSet rs = pst.executeQuery();
-			rs.next();
+			if (rs.next()) {
+				String friend = rs.getString("Friend_UserName");
+				if (friend == user) {
+					friend = rs.getString("User_UserName");
+				}
+				if (friend == null) {
+					friend = "None";
+				}
 
-			String friend = rs.getString("Friend_UserName");
-			if (friend == user) {
-				friend = rs.getString("User_UserName");
+				System.out.printf("Username: %-20s Screen Name: %-20s\nPosts: %d\n\nBest Friend: %-20s\n\n", user,
+						rs.getString("ScreenName"), rs.getInt("No_Of_Posts_Created"), friend);
+			} else {
+				System.out.println("User does not exist.");
+				displayProfile(sessionID);
 			}
-			if (friend == null) {
-				friend = "None";
-			}
-
-			System.out.printf("Username: %-20s Screen Name: %-20s\nPosts: %d\n\nBest Friend: %-20s\n\n", user,
-					rs.getString("ScreenName"), rs.getInt("No_Of_Posts_Created"), friend);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -639,7 +696,7 @@ public class SQLClient {
 		}
 
 		// Comment menu
-		System.out.print("1.  Back\n2.  Like Comment\n>> ");
+		System.out.print("\n\n1.  Back\n2.  Like Comment\n>> ");
 		inputHandler(7);
 	}
 
@@ -679,12 +736,13 @@ public class SQLClient {
 		}
 
 		// POST MENU
-		System.out.print("\n\n1.  Select Comment\n2.  Make Comment\n3.  Like Post\n>> ");
+		System.out.print("\n\n1.  Back\n2.  Select Comment\n3.  Make Comment\n4.  Like Post\n>> ");
 		inputHandler(3);
 	}
 
 	private static void quit() {
 		System.out.println("Goodbye");
+		System.exit(0);
 	}
 
 	private static void register() {
