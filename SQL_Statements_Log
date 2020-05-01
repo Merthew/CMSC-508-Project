@@ -178,3 +178,8 @@ DELETE FROM `Comments` WHERE Comments.Post_ID= 2;
 DELETE FROM `Post_Like` WHERE post_id= 1;
 
 DELETE FROM `Post` WHERE Post_ID= 2;
+
+-----------------------------------------------------------------------
+--01-May-2020
+
+--removing admin table. decided it was no longer needed.
